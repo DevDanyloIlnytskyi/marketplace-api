@@ -1,0 +1,1 @@
+npm run create-client -- --name "Acme" --domain shop.acme.com --database acme_db --storage acme

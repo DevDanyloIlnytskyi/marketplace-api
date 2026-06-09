@@ -1,0 +1,45 @@
+{
+  "name": "api_v_3",
+  "version": "1.0.0",
+  "description": "api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "nodemon index",
+    "create-client": "node scripts/create-client.js",
+    "pg-poc:create-db": "node scripts/pg-poc-create-databases.js",
+    "pg-poc:sync-schema": "node scripts/pg-poc-sync-schema.js",
+    "pg-poc:migrate": "node scripts/pg-poc-migrate-from-test-bd.js",
+    "pg-poc:smoke": "node scripts/pg-poc-smoke-test.js",
+    "migrate:properties-category": "node scripts/migrate-properties-category-test-bd.js",
+    "pg-poc:server": "node -e \"require('dotenv').config({path:'.env.postgres.staging'}); require('./index.js')\""
+  },
+  "keywords": [
+    "express",
+    "api"
+  ],
+  "author": "UNAS",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-paginate": "^1.0.2",
+    "express-validator": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mkdirp": "^3.0.1",
+    "moment": "^2.30.1",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.3",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.9.7",
+    "nodemon": "^3.1.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "pg": "^8.21.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.3"
+  }
+}

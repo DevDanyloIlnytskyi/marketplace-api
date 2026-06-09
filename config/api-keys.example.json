@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "keys": [
+    {
+      "id": "demo-1c-poc",
+      "key": "replace_with_local_dev_key_only",
+      "tenantId": "demo",
+      "active": true,
+      "label": "Local dev example — use keyHash in production (see api/scripts/hash-api-key.js)"
+    },
+    {
+      "id": "demo-1c-prod-example",
+      "keyHash": "REPLACE_WITH_SHA256_HEX_FROM_node_scripts_hash-api-key.js",
+      "tenantId": "demo",
+      "active": false,
+      "label": "Production example: keyHash only, no plaintext key"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "new-client",
+  "name": "Client Display Name",
+  "domain": "shop.example.com",
+  "database": "new_client_db",
+  "storage": "new-client",
+  "active": false
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "clients": [
+    {
+      "id": "demo",
+      "name": "Demo Market",
+      "domain": "demo.local",
+      "database": "your_tenant_database",
+      "storage": "demo",
+      "active": true
+    }
+  ]
+}
