@@ -2,6 +2,14 @@
   "version": 1,
   "clients": [
     {
+      "id": "avtoleg",
+      "name": "Avto-LEG",
+      "domain": "avtoleg.local",
+      "database": "autoleg_db",
+      "storage": "autoleg",
+      "active": true
+    },
+    {
       "id": "demo",
       "name": "Demo Market",
       "domain": "demo.local",
