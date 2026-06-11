@@ -33,6 +33,8 @@ Express multi-tenant API for the Marketplace platform.
    mkdir -p storage
    ```
 
+   **Production:** `MARKETPLACE_STORAGE_ROOT` is **required** (e.g. `/opt/marketplace/storage`). The API will not start without it when `NODE_ENV=production`.
+
 5. Start the server:
 
    ```bash

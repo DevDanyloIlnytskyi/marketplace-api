@@ -62,11 +62,25 @@ function validateEnv() {
     errors.push(`TENANT_REGISTRY_PATH: file not found (${registryPath})`);
   }
 
-  const storageRoot = process.env.MARKETPLACE_STORAGE_ROOT
-    || path.join(__dirname, '../../storage');
-
-  if (prod && !dirExists(storageRoot)) {
-    errors.push(`MARKETPLACE_STORAGE_ROOT: directory not found (${storageRoot})`);
+  if (prod) {
+    const rawStorageRoot = process.env.MARKETPLACE_STORAGE_ROOT;
+    if (!rawStorageRoot || !String(rawStorageRoot).trim()) {
+      errors.push(
+        'MARKETPLACE_STORAGE_ROOT: required in production (e.g. /opt/marketplace/storage)',
+      );
+    } else {
+      const storageRoot = path.resolve(String(rawStorageRoot).trim());
+      if (!dirExists(storageRoot)) {
+        errors.push(`MARKETPLACE_STORAGE_ROOT: directory not found (${storageRoot})`);
+      }
+    }
+  } else if (
+    process.env.MARKETPLACE_STORAGE_ROOT
+    && !dirExists(path.resolve(String(process.env.MARKETPLACE_STORAGE_ROOT).trim()))
+  ) {
+    errors.push(
+      `MARKETPLACE_STORAGE_ROOT: directory not found (${process.env.MARKETPLACE_STORAGE_ROOT})`,
+    );
   }
 
   if (prod && process.env.TENANT_TRUST_FORWARDED_HOST === 'true') {

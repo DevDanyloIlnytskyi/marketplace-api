@@ -2,11 +2,23 @@ const path = require('path');
 
 const { STORAGE_SUBDIRS } = require('./constants');
 
+/**
+ * Development fallback when MARKETPLACE_STORAGE_ROOT is unset.
+ * Resolves to {api_package_root}/storage (e.g. api/storage in the repo).
+ * Production must set MARKETPLACE_STORAGE_ROOT explicitly — enforced in validate-env.js.
+ */
+const DEFAULT_STORAGE_ROOT = path.join(__dirname, '..', '..', 'storage');
+
+function getDefaultStorageRoot() {
+  return DEFAULT_STORAGE_ROOT;
+}
+
 function getStorageRoot() {
-  if (process.env.MARKETPLACE_STORAGE_ROOT) {
-    return path.resolve(process.env.MARKETPLACE_STORAGE_ROOT);
+  const raw = process.env.MARKETPLACE_STORAGE_ROOT;
+  if (raw && String(raw).trim()) {
+    return path.resolve(String(raw).trim());
   }
-  return path.join(__dirname, '..', '..', 'storage');
+  return DEFAULT_STORAGE_ROOT;
 }
 
 /**
@@ -59,6 +71,8 @@ function ensureTenantStorageDirs(tenant) {
 }
 
 module.exports = {
+  DEFAULT_STORAGE_ROOT,
+  getDefaultStorageRoot,
   getStorageRoot,
   getTenantStoragePath,
   getTenantLogoPath,
