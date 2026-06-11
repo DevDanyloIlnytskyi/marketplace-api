@@ -2,6 +2,7 @@ const { TenantResolutionError } = require('./errors');
 const {
   findTenantByDomain,
   findTenantByDatabase,
+  findTenantById,
 } = require('./registry');
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
@@ -27,6 +28,20 @@ function normalizeHost(host) {
 }
 
 /**
+ * @param {string} tenantId
+ */
+function normalizeTenantId(tenantId) {
+  const normalized = String(tenantId).trim().toLowerCase();
+  if (!normalized || !/^[a-z0-9_-]+$/.test(normalized)) {
+    throw new TenantResolutionError(
+      'INVALID_TENANT',
+      `Invalid tenant id header: ${tenantId}`,
+    );
+  }
+  return normalized;
+}
+
+/**
  * @param {import('./config').TenantConfig} tenant
  */
 function assertActiveTenant(tenant) {
@@ -36,6 +51,24 @@ function assertActiveTenant(tenant) {
       `Tenant "${tenant.id}" is inactive for domain ${tenant.domain}`,
     );
   }
+}
+
+/**
+ * Resolve tenant by registry id (service-to-service / BFF).
+ * @param {string} tenantId
+ * @returns {import('./config').TenantConfig}
+ */
+function resolveTenantById(tenantId) {
+  const key = normalizeTenantId(tenantId);
+  const tenant = findTenantById(key);
+  if (!tenant) {
+    throw new TenantResolutionError(
+      'UNKNOWN_TENANT',
+      `No tenant registered for id: ${key}`,
+    );
+  }
+  assertActiveTenant(tenant);
+  return tenant;
 }
 
 /**
@@ -73,7 +106,7 @@ function resolveLocalDevTenant() {
 }
 
 /**
- * Resolve tenant from incoming HTTP host.
+ * Resolve tenant from incoming HTTP host (external / browser requests).
  * @param {string | undefined} host - Raw Host or X-Marketplace-Host header
  * @returns {import('./config').TenantConfig}
  */
@@ -103,21 +136,42 @@ function resolveTenant(host) {
 }
 
 /**
- * Extract marketplace host from Express request (BFF forwards X-Marketplace-Host).
+ * Resolve tenant from Express request.
+ *
+ * Priority:
+ *   1. X-Marketplace-Tenant (service-to-service; Host ignored when set)
+ *   2. Host / X-Marketplace-Host (external storefront)
+ *   3. reject
+ *
  * @param {import('express').Request} req
  */
 function resolveTenantFromRequest(req) {
+  const tenantIdHeader = req.get('x-marketplace-tenant');
+  if (tenantIdHeader && String(tenantIdHeader).trim()) {
+    return resolveTenantById(tenantIdHeader);
+  }
+
   const trustForwarded =
     process.env.TENANT_TRUST_FORWARDED_HOST === 'true' ||
     process.env.NODE_ENV !== 'production';
 
   const forwarded = trustForwarded ? req.get('x-marketplace-host') : undefined;
   const host = forwarded || req.get('host');
+
+  if (!host || !String(host).trim()) {
+    throw new TenantResolutionError(
+      'UNKNOWN_HOST',
+      'Tenant resolution requires X-Marketplace-Tenant or Host header',
+    );
+  }
+
   return resolveTenant(host);
 }
 
 module.exports = {
   normalizeHost,
+  normalizeTenantId,
+  resolveTenantById,
   resolveTenant,
   resolveTenantFromRequest,
 };

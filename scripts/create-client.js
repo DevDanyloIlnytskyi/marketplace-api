@@ -11,7 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const REPO_ROOT = path.join(__dirname, '..');
+const REPO_ROOT = path.join(__dirname, '..', '..');
 const REGISTRY_PATH = path.join(REPO_ROOT, 'config', 'clients.json');
 const TEMPLATE_PATH = path.join(REPO_ROOT, 'config', 'clients', 'client.template.json');
 

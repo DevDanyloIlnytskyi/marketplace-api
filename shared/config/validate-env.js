@@ -1,7 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const DEFAULT_REGISTRY = path.join(__dirname, '../../config/clients.json');
+const {
+  resolveTenantRegistryPath,
+  PRODUCTION_REGISTRY_PATH,
+} = require('../../../config/resolve-tenant-registry-path');
 
 function isProduction() {
   return process.env.NODE_ENV === 'production';
@@ -57,8 +60,32 @@ function validateEnv() {
     errors.push('password: required for MySQL database connections');
   }
 
-  const registryPath = process.env.TENANT_REGISTRY_PATH || DEFAULT_REGISTRY;
-  if (!fileExists(registryPath)) {
+  if (prod) {
+    if (!process.env.TENANT_REGISTRY_PATH || !String(process.env.TENANT_REGISTRY_PATH).trim()) {
+      errors.push(
+        `TENANT_REGISTRY_PATH: required in production (e.g. ${PRODUCTION_REGISTRY_PATH})`,
+      );
+    } else if (!path.isAbsolute(path.resolve(process.env.TENANT_REGISTRY_PATH))) {
+      errors.push('TENANT_REGISTRY_PATH: must be an absolute path in production');
+    }
+  }
+
+  let registryPath;
+  try {
+    registryPath = prod
+      ? path.resolve(process.env.TENANT_REGISTRY_PATH)
+      : resolveTenantRegistryPath({
+          cwd: path.join(__dirname, '..', '..', '..'),
+          mustExist: true,
+        });
+  } catch (error) {
+    errors.push(
+      `TENANT_REGISTRY_PATH: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    registryPath = null;
+  }
+
+  if (registryPath && !fileExists(registryPath)) {
     errors.push(`TENANT_REGISTRY_PATH: file not found (${registryPath})`);
   }
 

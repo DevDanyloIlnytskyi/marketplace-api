@@ -1,9 +1,16 @@
-const { normalizeHost, resolveTenant, resolveTenantFromRequest } = require('./resolve');
+const {
+  normalizeHost,
+  normalizeTenantId,
+  resolveTenantById,
+  resolveTenant,
+  resolveTenantFromRequest,
+} = require('./resolve');
 const {
   loadRegistry,
   clearRegistryCache,
   listTenants,
   findTenantByDomain,
+  findTenantById,
   findTenantByDatabase,
   getRegistryPath,
 } = require('./registry');
@@ -18,12 +25,15 @@ const tenantMiddleware = require('./middleware');
 
 module.exports = {
   normalizeHost,
+  normalizeTenantId,
+  resolveTenantById,
   resolveTenant,
   resolveTenantFromRequest,
   loadRegistry,
   clearRegistryCache,
   listTenants,
   findTenantByDomain,
+  findTenantById,
   findTenantByDatabase,
   getRegistryPath,
   TenantResolutionError,

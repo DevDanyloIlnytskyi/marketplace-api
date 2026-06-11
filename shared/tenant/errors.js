@@ -1,4 +1,4 @@
-/** @typedef {'UNKNOWN_HOST' | 'INACTIVE_TENANT' | 'INVALID_TENANT' | 'REGISTRY_ERROR'} TenantErrorCode */
+/** @typedef {'UNKNOWN_HOST' | 'UNKNOWN_TENANT' | 'INACTIVE_TENANT' | 'INVALID_TENANT' | 'REGISTRY_ERROR'} TenantErrorCode */
 
 class TenantResolutionError extends Error {
   /**
@@ -20,6 +20,7 @@ function tenantErrorStatus(error) {
     case 'INACTIVE_TENANT':
       return 403;
     case 'UNKNOWN_HOST':
+    case 'UNKNOWN_TENANT':
       return 404;
     case 'REGISTRY_ERROR':
       return 503;

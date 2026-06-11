@@ -8,13 +8,19 @@ const path = require('path');
 const PORT = process.env.port || 5000;
 const HOSTS = ['demo.local', 'avtoleg.local'];
 
+const { findTenantByDomain } = require('../shared/tenant/registry');
+
 function request(method, pathName, host, body, auth) {
   return new Promise((resolve) => {
     const data = body ? JSON.stringify(body) : null;
+    const tenant = findTenantByDomain(host.toLowerCase());
     const headers = {
-      'X-Marketplace-Host': host,
       'Content-Type': 'application/json',
     };
+    if (tenant) {
+      headers['X-Marketplace-Tenant'] = tenant.id;
+    }
+    headers['X-Marketplace-Host'] = host;
     if (auth) headers.Authorization = `Bearer ${auth}`;
     if (data) headers['Content-Length'] = Buffer.byteLength(data);
 

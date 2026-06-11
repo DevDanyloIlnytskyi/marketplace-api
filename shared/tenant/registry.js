@@ -2,14 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const { TenantResolutionError } = require('./errors');
-
-const DEFAULT_REGISTRY_PATH = path.join(
-  __dirname,
-  '..',
-  '..',
-  'config',
-  'clients.json',
-);
+const {
+  resolveTenantRegistryPath,
+} = require('../../../config/resolve-tenant-registry-path');
 
 /** @type {{ version: number; clients: import('./config').ClientRecord[] } | null} */
 let cachedRegistry = null;
@@ -23,7 +18,13 @@ let cachedMtimeMs = null;
  */
 
 function getRegistryPath() {
-  return process.env.TENANT_REGISTRY_PATH || DEFAULT_REGISTRY_PATH;
+  if (process.env.TENANT_REGISTRY_PATH) {
+    return path.resolve(process.env.TENANT_REGISTRY_PATH);
+  }
+  return resolveTenantRegistryPath({
+    cwd: path.join(__dirname, '..', '..', '..'),
+    mustExist: true,
+  });
 }
 
 /**
@@ -154,6 +155,20 @@ function findTenantByDomain(domain) {
 }
 
 /**
+ * Find tenant by stable registry id (case-insensitive).
+ * @param {string} tenantId
+ * @returns {import('./config').TenantConfig | null}
+ */
+function findTenantById(tenantId) {
+  if (!tenantId) {
+    return null;
+  }
+  const key = String(tenantId).trim().toLowerCase();
+  const match = listTenants().find((t) => t.id.toLowerCase() === key);
+  return match ?? null;
+}
+
+/**
  * Find tenant by MySQL database name.
  * @param {string} database
  * @returns {import('./config').TenantConfig | null}
@@ -173,6 +188,7 @@ module.exports = {
   buildDomainIndex,
   listTenants,
   findTenantByDomain,
+  findTenantById,
   findTenantByDatabase,
   toTenantConfig,
 };

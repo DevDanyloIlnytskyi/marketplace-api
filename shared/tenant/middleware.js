@@ -3,7 +3,8 @@ const { resolveTenantFromRequest } = require('./resolve');
 const { attachTenantContext } = require('./connection');
 
 /**
- * Resolve tenant from Host / X-Marketplace-Host and attach req.tenant, req.sequelize, req.models.
+ * Resolve tenant from X-Marketplace-Tenant (priority) or Host / X-Marketplace-Host.
+ * Attach req.tenant, req.sequelize, req.models.
  */
 function tenantMiddleware(req, res, next) {
   try {
