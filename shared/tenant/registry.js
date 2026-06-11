@@ -4,7 +4,7 @@ const path = require('path');
 const { TenantResolutionError } = require('./errors');
 const {
   resolveTenantRegistryPath,
-} = require('../../../config/resolve-tenant-registry-path');
+} = require('../config/resolve-tenant-registry-path');
 
 /** @type {{ version: number; clients: import('./config').ClientRecord[] } | null} */
 let cachedRegistry = null;

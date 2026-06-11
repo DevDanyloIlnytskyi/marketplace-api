@@ -4,7 +4,7 @@ const path = require('path');
 const {
   resolveTenantRegistryPath,
   PRODUCTION_REGISTRY_PATH,
-} = require('../../../config/resolve-tenant-registry-path');
+} = require('./resolve-tenant-registry-path');
 
 function isProduction() {
   return process.env.NODE_ENV === 'production';
