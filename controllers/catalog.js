@@ -1,6 +1,26 @@
 const errorHandler = require('../utils/errorHandler');
 require('dotenv').config();
 
+const { buildProductGalleryPaths } = require('../shared/product/gallery-paths');
+
+async function attachGalleryPhotos(req, row) {
+  if (!row || !row.id_bas) {
+    return row;
+  }
+
+  const galleryRows = await req.models.Products_photo.findAll({
+    where: { id_bas_product: row.id_bas },
+    order: [['id', 'ASC']],
+    attributes: ['photo'],
+    raw: true,
+  });
+
+  return {
+    ...row,
+    photos: buildProductGalleryPaths(row.main_photo, galleryRows),
+  };
+}
+
 const CATALOG_FROM = `
 FROM products AS p
 LEFT JOIN products_price AS pp ON pp.id_bas_product = p.id_bas
@@ -155,7 +175,12 @@ module.exports.getCatalog = async function (req, res) {
     const [rows] = await req.sequelize.query(dataSql, { replacements });
 
     if (req.query.id_bas) {
-      return res.status(200).json(rows[0] ?? null);
+      const row = rows[0] ?? null;
+      if (!row) {
+        return res.status(200).json(null);
+      }
+      const enriched = await attachGalleryPhotos(req, row);
+      return res.status(200).json(enriched);
     }
 
     return res.status(200).json(rows);

@@ -2,6 +2,7 @@ const errorHandler = require('../utils/errorHandler');
 const {validationResult} = require('express-validator');
 const paginate = require("express-paginate");
 const { getStoredMediaPath } = require('../shared/storage');
+const { buildProductGalleryPaths } = require('../shared/product/gallery-paths');
 require('dotenv').config();
 
 module.exports.getALL = async function(req, res){
@@ -72,15 +73,28 @@ module.exports.getByID = async function(req, res){
         }
     else {
         try {
-            await req.models.Product.findOne({
+            const product = await req.models.Product.findOne({
                 where:{
                     id_bas: req.query.id_bas    
                 }
-            }).then(answer => {
-                res.status(200).json(answer);
-            }).catch((error) => {
-                errorHandler(res, error);
-            });    
+            });
+
+            if (!product) {
+                return res.status(200).json(null);
+            }
+
+            const row = product.get({ plain: true });
+            const galleryRows = await req.models.Products_photo.findAll({
+                where: { id_bas_product: row.id_bas },
+                order: [['id', 'ASC']],
+                attributes: ['photo'],
+                raw: true,
+            });
+
+            return res.status(200).json({
+                ...row,
+                photos: buildProductGalleryPaths(row.main_photo, galleryRows),
+            });
         } catch (error) {
             errorHandler(res, error);
         }
