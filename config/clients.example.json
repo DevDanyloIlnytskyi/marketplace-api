@@ -5,7 +5,7 @@
       "id": "avtoleg",
       "name": "Avto-LEG",
       "domain": "avtoleg.local",
-      "database": "autoleg_db",
+      "database": "test_bd",
       "storage": "autoleg",
       "active": true
     },
