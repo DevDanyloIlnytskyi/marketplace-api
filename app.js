@@ -54,4 +54,10 @@ function mountApiRoutes(basePath) {
 mountApiRoutes('/api');
 mountApiRoutes('/api/v1');
 
+/** Platform-4.5.2+ — internal integration auth/scope tests (not /api/integration/*). */
+app.use('/api/internal', require('./routes/internal'));
+
+/** Platform-5.2 — Integration API read-only foundation (/api/integration/v1/*). */
+app.use('/api/integration/v1', require('./routes/integration'));
+
 module.exports = app;
