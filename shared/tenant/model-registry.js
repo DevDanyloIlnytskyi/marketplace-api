@@ -1,6 +1,12 @@
 const { DataTypes } = require('sequelize');
-
-
+const { defineIntegrationApiKeyModel } = require('../integration/keys/define-model');
+const { defineIntegrationLogModel } = require('../integration/audit/define-model');
+const { defineIntegrationIdempotencyKeyModel } = require('../integration/idempotency/define-model');
+const {
+  defineIntegrationSyncJobModel,
+  defineIntegrationSyncJobBatchModel,
+  defineIntegrationSyncJobEventModel,
+} = require('../integration-sync/constants');
 
 /**
 
@@ -274,7 +280,17 @@ function defineTenantModels(sequelize) {
 
   );
 
+  const IntegrationApiKey = defineIntegrationApiKeyModel(sequelize);
 
+  const IntegrationLog = defineIntegrationLogModel(sequelize);
+
+  const IntegrationIdempotencyKey = defineIntegrationIdempotencyKeyModel(sequelize);
+
+  const IntegrationSyncJob = defineIntegrationSyncJobModel(sequelize);
+
+  const IntegrationSyncJobBatch = defineIntegrationSyncJobBatchModel(sequelize);
+
+  const IntegrationSyncJobEvent = defineIntegrationSyncJobEventModel(sequelize);
 
   return {
 
@@ -297,6 +313,18 @@ function defineTenantModels(sequelize) {
     Propertie,
 
     Products_propertie,
+
+    IntegrationApiKey,
+
+    IntegrationLog,
+
+    IntegrationIdempotencyKey,
+
+    IntegrationSyncJob,
+
+    IntegrationSyncJobBatch,
+
+    IntegrationSyncJobEvent,
 
   };
 
