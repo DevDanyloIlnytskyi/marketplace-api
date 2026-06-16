@@ -6,6 +6,11 @@
  *
  * Usage:
  *   npm run platform-69-worker-e2e
+ *
+ * Env (optional — defaults to first active tenant in registry):
+ *   SMOKE_TENANT_ID=demo
+ *   SMOKE_TENANT_DOMAIN=demo.local
+ *   PLATFORM_69_USE_PM2=1   — skip daemon spawn; use running PM2 marketplace-sync-worker
  */
 require('dotenv').config();
 
@@ -77,8 +82,9 @@ async function waitForJobComplete(models, jobId, timeoutMs = 120000) {
 
 async function main() {
   console.log('\n=== Platform-6.9 Worker E2E Verification ===\n');
+  console.log(`[e2e] tenant=${TENANT_ID} domain=${TENANT_DOMAIN} source=${smokeTenant.source}`);
 
-  const tenant = findTenantById(TENANT_ID);
+  const tenant = smokeTenant.tenant;
   const models = getTenantModels(tenant);
 
   await models.IntegrationSyncJob.update(
@@ -100,25 +106,35 @@ async function main() {
   const category = await models.Category.findOne({ order: [['id', 'ASC']] });
   if (!category) throw new Error('No categories');
 
-  const daemonPath = path.join(__dirname, 'sync-worker-daemon.js');
-  const workerProc = spawn(process.execPath, [daemonPath], {
-    cwd: path.join(__dirname, '..'),
-    stdio: ['ignore', 'pipe', 'pipe'],
-    env: process.env,
-  });
+  const usePm2Worker = process.env.PLATFORM_69_USE_PM2 === '1'
+    || process.env.PLATFORM_69_USE_PM2 === 'true';
+  /** @type {import('child_process').ChildProcess | null} */
+  let workerProc = null;
 
-  let workerStarted = false;
-  workerProc.stdout.on('data', (chunk) => {
-    const text = chunk.toString();
-    process.stdout.write(`[worker] ${text}`);
-    if (text.includes('worker started')) workerStarted = true;
-  });
-  workerProc.stderr.on('data', (chunk) => {
-    process.stderr.write(`[worker] ${chunk.toString()}`);
-  });
+  if (usePm2Worker) {
+    console.log('[e2e] using external worker (PM2) — daemon spawn skipped');
+    record('worker_pm2_external', true);
+  } else {
+    const daemonPath = path.join(__dirname, 'sync-worker-daemon.js');
+    workerProc = spawn(process.execPath, [daemonPath], {
+      cwd: path.join(__dirname, '..'),
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: process.env,
+    });
 
-  await sleep(2000);
-  record('worker_daemon_started', workerStarted);
+    let workerStarted = false;
+    workerProc.stdout.on('data', (chunk) => {
+      const text = chunk.toString();
+      process.stdout.write(`[worker] ${text}`);
+      if (text.includes('worker started')) workerStarted = true;
+    });
+    workerProc.stderr.on('data', (chunk) => {
+      process.stderr.write(`[worker] ${chunk.toString()}`);
+    });
+
+    await sleep(2000);
+    record('worker_daemon_started', workerStarted);
+  }
 
   const { plaintext: apiKey, record: keyRecord } = await createKey(models, {
     tenantId: tenant.id,
@@ -192,11 +208,13 @@ async function main() {
     await new Promise((resolve, reject) => {
       server.close((err) => (err ? reject(err) : resolve()));
     });
-    workerProc.kill('SIGTERM');
-    await new Promise((resolve) => {
-      workerProc.on('exit', () => resolve());
-      setTimeout(resolve, 5000);
-    });
+    if (workerProc) {
+      workerProc.kill('SIGTERM');
+      await new Promise((resolve) => {
+        workerProc.on('exit', () => resolve());
+        setTimeout(resolve, 5000);
+      });
+    }
     await models.Product.destroy({ where: { id_bas: { [Op.like]: `${PREFIX}%` } } }).catch(() => {});
   }
 }
