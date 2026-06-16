@@ -16,7 +16,7 @@ Express multi-tenant API for the Marketplace platform.
    cp .env.example .env
    ```
 
-   Edit `.env` with your local database credentials and `jwtkey` (minimum 16 characters). **Never commit `.env`.**
+   Edit `.env` with your local database credentials and `JWTKEY` (minimum 16 characters; legacy alias `jwtkey` also accepted). **Never commit `.env`.**
 
 3. Copy tenant and API key config from examples:
 

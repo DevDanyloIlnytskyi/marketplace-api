@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt =require('bcryptjs');
 const errorHandler = require('../utils/errorHandler');
 require('dotenv').config();
+const { getJwtSecret } = require('../shared/config/jwt-secret');
 
 module.exports.registreted = async function(req, res){
     await req.models.User.findOne({
@@ -48,7 +49,7 @@ module.exports.loginjson = async function(req, res){
             if (passwordResult){
                 const token = jwt.sign({
                     login: answer.login
-                }, process.env.jwtkey, {expiresIn: 60*60});
+                }, getJwtSecret(), {expiresIn: 60*60});
 
                 res.status(200).json({
                     token: `Bearer ${token}`
@@ -81,7 +82,7 @@ module.exports.gettoken = async function(req, res){
             if (passwordResult){
                 const token = jwt.sign({
                     login: answer.login
-                }, process.env.jwtkey, {expiresIn: 60*60});
+                }, getJwtSecret(), {expiresIn: 60*60});
 
                 res.status(200).json({
                     token: `Bearer ${token}`

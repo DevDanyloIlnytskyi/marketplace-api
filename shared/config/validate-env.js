@@ -5,6 +5,7 @@ const {
   resolveTenantRegistryPath,
   PRODUCTION_REGISTRY_PATH,
 } = require('./resolve-tenant-registry-path');
+const { getJwtSecret } = require('./jwt-secret');
 
 function isProduction() {
   return process.env.NODE_ENV === 'production';
@@ -43,8 +44,9 @@ function validateEnv() {
   const dialect = resolveDialect();
   const prod = isProduction();
 
-  if (!process.env.jwtkey || String(process.env.jwtkey).length < 16) {
-    errors.push('jwtkey: required (minimum 16 characters)');
+  const jwtSecret = getJwtSecret();
+  if (!jwtSecret || jwtSecret.length < 16) {
+    errors.push('JWTKEY (or jwtkey): required (minimum 16 characters)');
   }
 
   if (dialect === 'postgres') {
@@ -114,8 +116,8 @@ function validateEnv() {
     errors.push('TENANT_TRUST_FORWARDED_HOST: should be false in production unless strictly controlled');
   }
 
-  if (prod && (!process.env.jwtkey || process.env.jwtkey === 'unas-test-ip')) {
-    errors.push('jwtkey: must not use development default in production');
+  if (prod && (!jwtSecret || jwtSecret === 'unas-test-ip')) {
+    errors.push('JWTKEY: must not use development default in production');
   }
 
   if (errors.length > 0) {
