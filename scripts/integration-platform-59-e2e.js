@@ -13,15 +13,16 @@ const fs = require('fs');
 const path = require('path');
 
 const app = require('../app');
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantModels, getTenantConnection } = require('../shared/tenant/connection');
 const { getTenantStoragePath } = require('../shared/storage/paths');
 const { createKey, revokeKey } = require('../shared/integration/keys');
 const { findRecent } = require('../shared/integration/audit');
 const { buildProductGalleryPaths } = require('../shared/product/gallery-paths');
 
-const TENANT_DOMAIN = process.env.SMOKE_TENANT_DOMAIN || 'demo.local';
-const TENANT_ID = process.env.SMOKE_TENANT_ID || 'demo';
+const smokeTenant = resolveSmokeTenant();
+const TENANT_ID = smokeTenant.tenantId;
+const TENANT_DOMAIN = smokeTenant.tenantDomain;
 const RUN_ID = Date.now();
 const NEW_PRODUCT_ID_BAS = `p59-e2e-new-${RUN_ID}`;
 
@@ -173,7 +174,7 @@ async function testIdempotencyTriplet(port, urlPath, writeKey, body) {
   assert(third.status === 409, `idem #3 expected 409 got ${third.status}`);
   assert(third.body?.code === 'IDEMPOTENCY_CONFLICT', 'idem #3 conflict code');
 
-  const idemRows = await getTenantModels(findTenantById(TENANT_ID))
+  const idemRows = await getTenantModels(smokeTenant.tenant)
     .IntegrationIdempotencyKey.findAll({
       where: { idempotency_key: key },
       raw: true,
@@ -184,10 +185,8 @@ async function testIdempotencyTriplet(port, urlPath, writeKey, body) {
 async function main() {
   console.log('\n=== Platform-5.9 Integration E2E Validation ===\n');
 
-  const tenant = findTenantById(TENANT_ID);
-  if (!tenant) {
-    throw new Error(`Tenant not found: ${TENANT_ID}`);
-  }
+  const tenant = smokeTenant.tenant;
+  console.log(`[smoke] tenant=${TENANT_ID} domain=${smokeTenant.tenantDomain} source=${smokeTenant.source}`);
 
   const storageRoot = getTenantStoragePath(tenant);
   console.log('INTEGRATION_TEST_ENVIRONMENT');

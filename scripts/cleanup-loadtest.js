@@ -4,7 +4,7 @@
  */
 require('dotenv').config();
 
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantConnection } = require('../shared/tenant/connection');
 const { stopSyncWorker } = require('../shared/integration-sync');
 
@@ -12,7 +12,9 @@ const BATCH = 500;
 
 async function main() {
   stopSyncWorker();
-  const tenant = findTenantById(process.env.SMOKE_TENANT_ID || 'demo');
+  const smokeTenant = resolveSmokeTenant();
+  const tenant = smokeTenant.tenant;
+  console.log(`[smoke] tenant=${tenant.id} domain=${smokeTenant.tenantDomain} source=${smokeTenant.source}`);
   const sequelize = getTenantConnection(tenant);
   await sequelize.authenticate();
 

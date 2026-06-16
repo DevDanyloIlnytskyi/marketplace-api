@@ -9,7 +9,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { Op } = require('sequelize');
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantModels, getTenantConnection } = require('../shared/tenant/connection');
 const { stopSyncWorker } = require('../shared/integration-sync');
 
@@ -130,7 +130,7 @@ async function executeCleanup(sequelize, models, tenantId) {
 }
 
 async function verify(sequelize) {
-  const remaining = await discover(sequelize, getTenantModels(findTenantById(process.env.SMOKE_TENANT_ID || 'demo')));
+  const remaining = await discover(sequelize, getTenantModels(resolveSmokeTenant().tenant));
   const total = Object.values(remaining).reduce((a, b) => a + b, 0);
   return { remaining, pass: total === 0 };
 }
@@ -154,7 +154,7 @@ async function validateIntegrity(sequelize, beforeCounts) {
 
 async function main() {
   console.log('\n=== Platform-6.8 Cleanup Recovery ===\n');
-  const tenant = findTenantById(process.env.SMOKE_TENANT_ID || 'demo');
+  const tenant = resolveSmokeTenant().tenant;
   const models = getTenantModels(tenant);
   const sequelize = getTenantConnection(tenant);
   await connectWithRetry(sequelize);

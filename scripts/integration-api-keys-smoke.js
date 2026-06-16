@@ -7,7 +7,7 @@
  */
 require('dotenv').config();
 
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantModels } = require('../shared/tenant/connection');
 const {
   createKey,
@@ -23,13 +23,12 @@ const {
   validateTenantBinding,
 } = require('../shared/integration/keys');
 
-const TENANT_ID = process.env.SMOKE_TENANT_ID || 'demo';
+const smokeTenant = resolveSmokeTenant();
+const TENANT_ID = smokeTenant.tenantId;
 
 async function main() {
-  const tenant = findTenantById(TENANT_ID);
-  if (!tenant) {
-    throw new Error(`Tenant not found: ${TENANT_ID}`);
-  }
+  const tenant = smokeTenant.tenant;
+  console.log(`[smoke] tenant=${TENANT_ID} domain=${smokeTenant.tenantDomain} source=${smokeTenant.source}`);
 
   const models = getTenantModels(tenant);
 

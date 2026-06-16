@@ -10,7 +10,7 @@ const { Op } = require('sequelize');
 
 const http = require('http');
 const app = require('../app');
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantModels, getTenantConnection } = require('../shared/tenant/connection');
 const { createKey, revokeKey } = require('../shared/integration/keys');
 const {
@@ -24,8 +24,9 @@ const {
   ACTIVE_SYNC_JOB_STATUSES,
 } = require('../shared/integration-sync');
 
-const TENANT_DOMAIN = process.env.SMOKE_TENANT_DOMAIN || 'demo.local';
-const TENANT_ID = process.env.SMOKE_TENANT_ID || 'demo';
+const smokeTenant = resolveSmokeTenant();
+const TENANT_ID = smokeTenant.tenantId;
+const TENANT_DOMAIN = smokeTenant.tenantDomain;
 const RUN_ID = Date.now();
 
 /** @type {Record<string, { status: 'PASS' | 'FAIL', detail?: string }>} */
@@ -131,10 +132,8 @@ async function waitForJobStatus(models, jobId, targetStatus, timeoutMs = 15000) 
 async function main() {
   console.log('\n=== Platform-6.1 Sync Job Infrastructure Smoke ===\n');
 
-  const tenant = findTenantById(TENANT_ID);
-  if (!tenant) {
-    throw new Error(`Tenant not found: ${TENANT_ID}`);
-  }
+  const tenant = smokeTenant.tenant;
+  console.log(`[smoke] tenant=${TENANT_ID} domain=${smokeTenant.tenantDomain} source=${smokeTenant.source}`);
 
   const models = getTenantModels(tenant);
   const sequelize = getTenantConnection(tenant);

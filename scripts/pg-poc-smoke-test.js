@@ -1,19 +1,21 @@
 /**
  * Platform-3.2 — HTTP smoke test against PostgreSQL-backed API.
  */
+require('dotenv').config();
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.port || 5000;
-const HOSTS = ['demo.local', 'avtoleg.local'];
 
-const { findTenantByDomain } = require('../shared/tenant/registry');
+const { listTenants } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 
 function request(method, pathName, host, body, auth) {
   return new Promise((resolve) => {
     const data = body ? JSON.stringify(body) : null;
-    const tenant = findTenantByDomain(host.toLowerCase());
+    const tenant = listTenants().find((t) => t.domain.toLowerCase() === host.toLowerCase());
     const headers = {
       'Content-Type': 'application/json',
     };
@@ -41,6 +43,16 @@ function request(method, pathName, host, body, auth) {
 }
 
 async function main() {
+  const smokeTenant = resolveSmokeTenant();
+  const hosts = listTenants()
+    .filter((tenant) => tenant.active !== false)
+    .map((tenant) => tenant.domain);
+
+  console.log(
+    `[smoke] tenant=${smokeTenant.tenantId} domain=${smokeTenant.tenantDomain} source=${smokeTenant.source}`,
+  );
+  console.log(`[smoke] probing active hosts: ${hosts.join(', ')}`);
+
   let jwt = process.env.EXPRESS_TECH_JWT;
   if (!jwt) {
     try {
@@ -64,13 +76,13 @@ async function main() {
     products: [],
   };
 
-  for (const host of HOSTS) {
+  for (const host of hosts) {
     console.log(`\n=== ${host} ===`);
     console.log(await request('GET', '/api/catalog?page=1&limit=2', host));
     console.log(await request('GET', '/api/category', host));
     console.log(await request('GET', '/api/base_info', host));
     console.log(await request('GET', '/api/product', host));
-    if (jwt && host === 'demo.local') {
+    if (jwt && host === smokeTenant.tenantDomain) {
       console.log(await request('POST', '/api/orders', host, order, jwt));
     }
   }

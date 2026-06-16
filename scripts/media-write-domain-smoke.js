@@ -6,7 +6,7 @@
  */
 require('dotenv').config();
 
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantModels, getTenantConnection } = require('../shared/tenant/connection');
 const {
   replacePhotoSet,
@@ -20,7 +20,8 @@ const {
 const { findPhotosByProductIdBas } = require('../shared/catalog/media-repository');
 const { findProductByIdBas } = require('../shared/catalog/product-repository');
 
-const TENANT_ID = process.env.SMOKE_TENANT_ID || 'demo';
+const smokeTenant = resolveSmokeTenant();
+const TENANT_ID = smokeTenant.tenantId;
 const TEST_PRODUCT_ID_BAS = `pw58-smoke-${Date.now()}`;
 
 function assert(condition, message) {
@@ -41,10 +42,8 @@ async function main() {
   }
   console.log('validation layer: ok');
 
-  const tenant = findTenantById(TENANT_ID);
-  if (!tenant) {
-    throw new Error(`Tenant not found: ${TENANT_ID}`);
-  }
+  const tenant = smokeTenant.tenant;
+  console.log(`[smoke] tenant=${TENANT_ID} domain=${smokeTenant.tenantDomain} source=${smokeTenant.source}`);
 
   const models = getTenantModels(tenant);
   const sequelize = getTenantConnection(tenant);

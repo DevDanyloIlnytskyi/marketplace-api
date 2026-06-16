@@ -8,7 +8,7 @@
  *   PLATFORM_68_SIZE=2000           (endurance test product count)
  *   PLATFORM_68_SKIP_ENDURANCE=1    (skip long endurance run)
  *   PLATFORM_68_SKIP_MYSQL=1        (skip MySQL disconnect simulation)
- *   SMOKE_TENANT_ID=demo
+ *   SMOKE_TENANT_ID / SMOKE_TENANT_DOMAIN (optional — defaults to first active registry tenant)
  */
 require('dotenv').config();
 
@@ -19,7 +19,7 @@ const path = require('path');
 const { Op } = require('sequelize');
 const { execSync } = require('child_process');
 const app = require('../app');
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const {
   getTenantModels,
   getTenantConnection,
@@ -39,8 +39,9 @@ const {
   acquireLease,
 } = require('../shared/integration-sync');
 
-const TENANT_DOMAIN = process.env.SMOKE_TENANT_DOMAIN || 'demo.local';
-const TENANT_ID = process.env.SMOKE_TENANT_ID || 'demo';
+const smokeTenant = resolveSmokeTenant();
+const TENANT_ID = smokeTenant.tenantId;
+const TENANT_DOMAIN = smokeTenant.tenantDomain;
 const RUN_ID = process.env.PLATFORM_68_RUN_ID || String(Date.now());
 const PREFIX = `P68_${RUN_ID}_`;
 const ENDURANCE_SIZE = Number(process.env.PLATFORM_68_SIZE || 2000);

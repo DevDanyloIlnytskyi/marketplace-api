@@ -6,17 +6,15 @@
  */
 require('dotenv').config();
 
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantModels } = require('../shared/tenant/connection');
 const { cleanupExpiredIdempotencyKeys } = require('../shared/integration/idempotency');
 
-const TENANT_ID = process.env.SMOKE_TENANT_ID || 'demo';
+const smokeTenant = resolveSmokeTenant();
 
 async function main() {
-  const tenant = findTenantById(TENANT_ID);
-  if (!tenant) {
-    throw new Error(`Tenant not found: ${TENANT_ID}`);
-  }
+  const tenant = smokeTenant.tenant;
+  console.log(`[smoke] tenant=${tenant.id} domain=${smokeTenant.tenantDomain} source=${smokeTenant.source}`);
 
   const models = getTenantModels(tenant);
   const deleted = await cleanupExpiredIdempotencyKeys(models, {

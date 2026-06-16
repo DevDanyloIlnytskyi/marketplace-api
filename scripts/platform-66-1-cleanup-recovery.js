@@ -9,14 +9,14 @@
  *
  * Env:
  *   db_port=3306|3307  (override if needed)
- *   SMOKE_TENANT_ID=demo
+ *   SMOKE_TENANT_ID / SMOKE_TENANT_DOMAIN (optional — defaults to first active registry tenant)
  */
 require('dotenv').config();
 
 const fs = require('fs');
 const path = require('path');
 const { Op } = require('sequelize');
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantModels, getTenantConnection } = require('../shared/tenant/connection');
 const { stopSyncWorker } = require('../shared/integration-sync');
 
@@ -102,7 +102,7 @@ async function cancelActiveLoadtestJobs(sequelize, tenantId) {
  * @param {import('sequelize').Sequelize} sequelize
  */
 async function discoverCandidates(models, sequelize) {
-  const tenant = findTenantById(process.env.SMOKE_TENANT_ID || 'demo');
+  const tenant = resolveSmokeTenant().tenant;
 
   const [[{ productCount }]] = await sequelize.query(
     `SELECT COUNT(*) AS productCount FROM products WHERE id_bas LIKE 'LOADTEST_%'`,
@@ -642,7 +642,7 @@ async function main() {
   console.log('\n=== Platform-6.6.1 Cleanup Recovery ===\n');
   console.log(`Phase: ${PHASE}\n`);
 
-  const tenant = findTenantById(process.env.SMOKE_TENANT_ID || 'demo');
+  const tenant = resolveSmokeTenant().tenant;
   if (!tenant) {
     throw new Error('Tenant demo not found');
   }

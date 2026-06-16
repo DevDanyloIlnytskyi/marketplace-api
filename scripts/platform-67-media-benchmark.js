@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const { Op } = require('sequelize');
 const app = require('../app');
-const { findTenantById } = require('../shared/tenant/registry');
+const { resolveSmokeTenant } = require('./lib/resolve-smoke-tenant');
 const { getTenantModels, getTenantConnection } = require('../shared/tenant/connection');
 const { createKey, revokeKey } = require('../shared/integration/keys');
 const {
@@ -23,8 +23,9 @@ const {
 const { replacePhotoSet } = require('../shared/catalog/media-write');
 const { processMediaBatch } = require('../shared/integration-sync/processors/media-batch-processor');
 
-const TENANT_DOMAIN = process.env.SMOKE_TENANT_DOMAIN || 'demo.local';
-const TENANT_ID = process.env.SMOKE_TENANT_ID || 'demo';
+const smokeTenant = resolveSmokeTenant();
+const TENANT_ID = smokeTenant.tenantId;
+const TENANT_DOMAIN = smokeTenant.tenantDomain;
 const RUN_ID = process.env.PLATFORM_67_RUN_ID || String(Date.now());
 const PREFIX = `p67-${RUN_ID}_`;
 const SIZE = Number(process.env.PLATFORM_67_SIZE || 1000);
