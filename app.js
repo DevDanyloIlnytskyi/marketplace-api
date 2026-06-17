@@ -12,6 +12,7 @@ const products_quantityRoutes = require('./routes/products_quantity');
 const ordersRoutes = require('./routes/orders');
 const baseInfoRoutes = require('./routes/base_info');
 const catalogRoutes = require('./routes/catalog');
+const storefrontRoutes = require('./routes/storefront');
 const paginate = require("express-paginate");
 
 const tenantMiddleware = require('./shared/tenant/middleware');
@@ -49,6 +50,7 @@ function mountApiRoutes(basePath) {
   app.use(`${basePath}/orders`, ordersRoutes);
   app.use(`${basePath}/base_info`, baseInfoRoutes);
   app.use(`${basePath}/catalog`, catalogRoutes);
+  app.use(`${basePath}/storefront`, storefrontRoutes);
 }
 
 mountApiRoutes('/api');
