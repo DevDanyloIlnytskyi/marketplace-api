@@ -8,6 +8,13 @@ const {
   asyncHandler,
 } = require('../../shared/integration/http');
 const { integrationIdempotency } = require('../../shared/integration/idempotency');
+const { branchIntegrationWriteMiddleware } = require('../../shared/integration/http/content-type');
+const { promoteStagedUploads } = require('../../shared/integration/http/promote-staged-uploads');
+const {
+  integrationMultipartProductParseChain,
+  integrationMultipartMediaParseChain,
+  integrationUploadErrorHandler,
+} = require('../../shared/integration/http/integration-multipart');
 
 const metaController = require('../../integration/controllers/meta');
 const debugIdempotencyController = require('../../integration/controllers/debug-idempotency-test');
@@ -65,14 +72,28 @@ authedRouter.get(
 authedRouter.put(
   '/products/:idBas',
   requireScopes(INTEGRATION_SCOPES.CATALOG_WRITE),
-  integrationIdempotency({ required: true }),
-  asyncHandler(productsWriteController.upsertProductHandler),
+  asyncHandler(branchIntegrationWriteMiddleware(
+    [integrationIdempotency({ required: true })],
+    [
+      ...integrationMultipartProductParseChain,
+      integrationIdempotency({ required: true }),
+      promoteStagedUploads,
+    ],
+    productsWriteController.upsertProductHandler,
+  )),
 );
 authedRouter.put(
   '/products/:productIdBas/media',
   requireScopes(INTEGRATION_SCOPES.MEDIA_WRITE),
-  integrationIdempotency({ required: true }),
-  asyncHandler(mediaWriteController.replacePhotoSetHandler),
+  asyncHandler(branchIntegrationWriteMiddleware(
+    [integrationIdempotency({ required: true })],
+    [
+      ...integrationMultipartMediaParseChain,
+      integrationIdempotency({ required: true }),
+      promoteStagedUploads,
+    ],
+    mediaWriteController.replacePhotoSetHandler,
+  )),
 );
 
 authedRouter.get(
@@ -149,6 +170,7 @@ authedRouter.post(
 );
 
 router.use(authedRouter);
+router.use(integrationUploadErrorHandler);
 router.use(integrationErrorHandler);
 
 module.exports = router;

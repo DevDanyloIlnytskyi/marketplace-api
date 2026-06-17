@@ -1,6 +1,11 @@
 const { getTenantConnection } = require('../../shared/tenant/connection');
 const { replacePhotoSet } = require('../../shared/catalog/media-write');
 const { successResponse } = require('../../shared/integration/http');
+const {
+  mapMultipartMediaToInput,
+  shouldUseMultipartMediaMapper,
+} = require('../../shared/integration/http/multipart-media-mapper');
+const { rollbackPromotedUploads } = require('../../shared/integration/http/upload-rollback');
 
 /**
  * Map Integration HTTP body → domain input. productIdBas comes from URL only.
@@ -19,7 +24,11 @@ function mapReplacePhotoSetBody(body, productIdBas) {
  * PUT /api/integration/v1/products/:productIdBas/media — HTTP adapter only.
  */
 async function replacePhotoSetHandler(req, res) {
-  const input = mapReplacePhotoSetBody(req.body, req.params.productIdBas);
+  const productIdBas = req.params.productIdBas;
+  const input = shouldUseMultipartMediaMapper(req)
+    ? mapMultipartMediaToInput(req, productIdBas)
+    : mapReplacePhotoSetBody(req.body, productIdBas);
+
   const sequelize = getTenantConnection(req.tenant);
   const transaction = await sequelize.transaction();
 
@@ -35,6 +44,7 @@ async function replacePhotoSetHandler(req, res) {
     });
   } catch (error) {
     await transaction.rollback();
+    await rollbackPromotedUploads(req);
     throw error;
   }
 }

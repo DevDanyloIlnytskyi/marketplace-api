@@ -9,6 +9,7 @@ const {
 } = require('./constants');
 const { claimOrReplay } = require('./service');
 const { attachIdempotencyResponseCapture } = require('./response-capture');
+const { cleanupStagingDirectory } = require('../../storage/staging-storage');
 
 /**
  * Integration idempotency middleware for write routes (Platform-5.3).
@@ -47,6 +48,9 @@ function integrationIdempotency(options = {}) {
       const decision = await claimOrReplay(req, presentedKey);
 
       if (decision.action === 'replay') {
+        if (req.isMultipartIntegrationWrite) {
+          cleanupStagingDirectory(req);
+        }
         res.setHeader('X-Idempotent-Replay', 'true');
         res.setHeader('X-API-Version', 'v1');
         if (req.requestId) {
@@ -56,6 +60,9 @@ function integrationIdempotency(options = {}) {
       }
 
       if (decision.action === 'conflict') {
+        if (req.isMultipartIntegrationWrite) {
+          cleanupStagingDirectory(req);
+        }
         /** @type {Record<string, unknown>} */
         const details = {
           idempotencyKey: presentedKey,

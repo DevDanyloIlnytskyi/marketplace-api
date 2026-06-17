@@ -1,6 +1,11 @@
 const { getTenantConnection } = require('../../shared/tenant/connection');
 const { upsertProduct } = require('../../shared/catalog/product-write');
 const { successResponse } = require('../../shared/integration/http');
+const {
+  mapMultipartProductToInput,
+  shouldUseMultipartProductMapper,
+} = require('../../shared/integration/http/multipart-product-mapper');
+const { rollbackPromotedUploads } = require('../../shared/integration/http/upload-rollback');
 
 /**
  * Map Integration HTTP body → domain input. idBas comes from URL only.
@@ -36,7 +41,11 @@ function mapUpsertProductBody(body, idBas) {
  * PUT /api/integration/v1/products/:idBas — HTTP adapter only (no business logic).
  */
 async function upsertProductHandler(req, res) {
-  const input = mapUpsertProductBody(req.body, req.params.idBas);
+  const idBas = req.params.idBas;
+  const input = shouldUseMultipartProductMapper(req)
+    ? mapMultipartProductToInput(req, idBas)
+    : mapUpsertProductBody(req.body, idBas);
+
   const sequelize = getTenantConnection(req.tenant);
   const transaction = await sequelize.transaction();
 
@@ -50,6 +59,7 @@ async function upsertProductHandler(req, res) {
     });
   } catch (error) {
     await transaction.rollback();
+    await rollbackPromotedUploads(req);
     throw error;
   }
 }

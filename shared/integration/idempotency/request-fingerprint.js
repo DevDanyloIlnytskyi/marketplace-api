@@ -37,12 +37,17 @@ function resolveFingerprintPath(req) {
 
 /**
  * Build SHA-256 fingerprint from method + route + canonical body.
- * Independent of JSON key order in request body.
+ * Multipart requests delegate to file-aware fingerprint when flagged.
  *
  * @param {import('express').Request} req
  * @returns {string} hex digest
  */
 function computeRequestFingerprint(req) {
+  if (req.isMultipartIntegrationWrite) {
+    const { computeMultipartRequestFingerprint } = require('./multipart-fingerprint');
+    return computeMultipartRequestFingerprint(req);
+  }
+
   const method = String(req.method || 'GET').toUpperCase();
   const path = resolveFingerprintPath(req);
   const body = req.body === undefined || req.body === null ? {} : req.body;
