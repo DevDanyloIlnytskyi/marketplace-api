@@ -1,0 +1,292 @@
+{
+  "info": {
+    "name": "Marketplace Integration API v1 (1C)",
+    "description": "First-stage 1C integration contract. Base: /api/integration/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://<api-domain>/api/integration/v1" },
+    { "key": "tenantId", "value": "avtoleg" },
+    { "key": "apiKey", "value": "<API_KEY>" },
+    { "key": "idBas", "value": "550e8400-e29b-41d4-a716-446655440010" },
+    { "key": "categoryIdBas", "value": "550e8400-e29b-41d4-a716-446655440001" },
+    { "key": "orderId", "value": "1" }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "X-API-Key", "type": "string" },
+      { "key": "value", "value": "{{apiKey}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Meta",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "GET /whoami",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": "{{baseUrl}}/whoami"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "GET /products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [{ "key": "limit", "value": "50" }]
+            }
+          }
+        },
+        {
+          "name": "GET /products/{idBas}",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": "{{baseUrl}}/products/{{idBas}}"
+          }
+        },
+        {
+          "name": "PUT /products/{idBas} (JSON)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Колодки гальмівні передні\",\n  \"categoryIdBas\": \"{{categoryIdBas}}\",\n  \"manufacturer\": \"Bosch\",\n  \"actual\": true,\n  \"mainPhoto\": \"products/image.webp\"\n}"
+            },
+            "url": "{{baseUrl}}/products/{{idBas}}"
+          }
+        },
+        {
+          "name": "PUT /products/{idBas} (multipart main_photo)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Колодки гальмівні передні", "type": "text" },
+                { "key": "categoryIdBas", "value": "{{categoryIdBas}}", "type": "text" },
+                { "key": "manufacturer", "value": "Bosch", "type": "text" },
+                { "key": "actual", "value": "true", "type": "text" },
+                { "key": "main_photo", "type": "file", "src": [] }
+              ]
+            },
+            "url": "{{baseUrl}}/products/{{idBas}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product Media",
+      "item": [
+        {
+          "name": "PUT /products/{productIdBas}/media (JSON)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"photos\": [\n    \"products/a.webp\",\n    \"products/b.webp\",\n    \"products/c.webp\"\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/products/{{idBas}}/media"
+          }
+        },
+        {
+          "name": "PUT /products/{productIdBas}/media (multipart)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "photos[]", "type": "file", "src": [] },
+                { "key": "photos[]", "type": "file", "src": [] },
+                { "key": "photos[]", "type": "file", "src": [] }
+              ]
+            },
+            "url": "{{baseUrl}}/products/{{idBas}}/media"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prices",
+      "item": [
+        {
+          "name": "GET /prices/{productIdBas}",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": "{{baseUrl}}/prices/{{idBas}}"
+          }
+        },
+        {
+          "name": "PUT /prices/{productIdBas}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 1500,\n  \"actionPrice\": 1200\n}"
+            },
+            "url": "{{baseUrl}}/prices/{{idBas}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stock",
+      "item": [
+        {
+          "name": "GET /stock/{productIdBas}",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": "{{baseUrl}}/stock/{{idBas}}"
+          }
+        },
+        {
+          "name": "PUT /stock/{productIdBas}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 15\n}"
+            },
+            "url": "{{baseUrl}}/stock/{{idBas}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "GET /categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categories?limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"],
+              "query": [{ "key": "limit", "value": "100" }]
+            }
+          }
+        },
+        {
+          "name": "GET /categories/{idBas}",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": "{{baseUrl}}/categories/{{categoryIdBas}}"
+          }
+        },
+        {
+          "name": "GET /catalog",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/catalog?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["catalog"],
+              "query": [{ "key": "limit", "value": "50" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "GET /orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders?active=false&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"],
+              "query": [
+                { "key": "active", "value": "false" },
+                { "key": "limit", "value": "50" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /orders/{id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Marketplace-Tenant", "value": "{{tenantId}}" }
+            ],
+            "url": "{{baseUrl}}/orders/{{orderId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

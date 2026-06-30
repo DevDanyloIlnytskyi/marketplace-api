@@ -48,9 +48,9 @@ function countProductFiles(tenant) {
 }
 
 function assertPublicDocsClean() {
-  const repoRoot = path.join(__dirname, '..', '..');
-  const docPath = path.join(repoRoot, 'docs', '1C_API_DOCUMENTATION.md');
-  const postmanPath = path.join(repoRoot, 'docs', '1C_API_POSTMAN_COLLECTION_DRAFT.json');
+  const apiRoot = path.join(__dirname, '..');
+  const docPath = path.join(apiRoot, 'docs', '1C_API_DOCUMENTATION.md');
+  const postmanPath = path.join(apiRoot, 'docs', '1C_API_POSTMAN_COLLECTION_DRAFT.json');
   const forbidden = [
     'Idempotency-Key',
     'idempotencyKey',
