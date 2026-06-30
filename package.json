@@ -35,6 +35,7 @@
     "integration-idempotency-multipart:smoke": "node scripts/integration-idempotency-multipart-smoke.js",
     "integration-products-write-multipart:smoke": "node scripts/integration-products-write-multipart-smoke.js",
     "integration-media-write-multipart:smoke": "node scripts/integration-media-write-multipart-smoke.js",
+    "integration-direct-write-no-idempotency:smoke": "node scripts/integration-direct-write-no-idempotency-smoke.js",
     "integration-e2e:validate": "node scripts/integration-platform-59-e2e.js",
     "migrate:integration-sync-jobs": "node scripts/migrate-integration-sync-jobs.js up",
     "migrate:integration-sync-jobs:down": "node scripts/migrate-integration-sync-jobs.js down",

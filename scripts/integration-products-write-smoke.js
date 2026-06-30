@@ -5,6 +5,7 @@
  *   node scripts/integration-products-write-smoke.js
  */
 require('dotenv').config();
+process.env.INTEGRATION_IDEMPOTENCY_ENABLED = 'true';
 
 const http = require('http');
 const app = require('../app');

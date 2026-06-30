@@ -1,6 +1,7 @@
 const { createProductImageUpload } = require('../../storage/upload-middleware');
 const { createStagingDiskStorage, cleanupStagingDirectory } = require('../../storage/staging-storage');
 const { attachMultipartFingerprint } = require('../idempotency/multipart-fingerprint');
+const { isIntegrationIdempotencyEnabled } = require('../idempotency/config');
 const { handleUploadError } = require('../../storage/upload-validation');
 
 const MEDIA_PHOTO_MAX_COUNT = 50;
@@ -42,17 +43,38 @@ const stageMediaUpload = wrapStagingUpload(
   ]),
 );
 
-/** Multipart parse + fingerprint only (idempotency and promote wired in routes). */
-const integrationMultipartProductParseChain = [
-  stageProductUpload,
-  attachMultipartFingerprint,
-];
+/**
+ * Staging parse chain for product multipart PUT.
+ * Fingerprint step included only when direct-write idempotency is enabled.
+ *
+ * @returns {import('express').RequestHandler[]}
+ */
+function getIntegrationMultipartProductParseChain() {
+  const chain = [stageProductUpload];
+  if (isIntegrationIdempotencyEnabled()) {
+    chain.push(attachMultipartFingerprint);
+  }
+  return chain;
+}
 
-/** Multipart parse + fingerprint for media PUT. */
-const integrationMultipartMediaParseChain = [
-  stageMediaUpload,
-  attachMultipartFingerprint,
-];
+/**
+ * Staging parse chain for media multipart PUT.
+ *
+ * @returns {import('express').RequestHandler[]}
+ */
+function getIntegrationMultipartMediaParseChain() {
+  const chain = [stageMediaUpload];
+  if (isIntegrationIdempotencyEnabled()) {
+    chain.push(attachMultipartFingerprint);
+  }
+  return chain;
+}
+
+/** @deprecated Use getIntegrationMultipartProductParseChain() */
+const integrationMultipartProductParseChain = getIntegrationMultipartProductParseChain();
+
+/** @deprecated Use getIntegrationMultipartMediaParseChain() */
+const integrationMultipartMediaParseChain = getIntegrationMultipartMediaParseChain();
 
 module.exports = {
   MEDIA_PHOTO_MAX_COUNT,
@@ -60,6 +82,8 @@ module.exports = {
   wrapStagingUpload,
   stageProductUpload,
   stageMediaUpload,
+  getIntegrationMultipartProductParseChain,
+  getIntegrationMultipartMediaParseChain,
   integrationMultipartProductParseChain,
   integrationMultipartMediaParseChain,
   integrationUploadErrorHandler: handleUploadError,

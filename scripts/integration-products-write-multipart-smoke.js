@@ -2,6 +2,7 @@
  * Platform-7.2 — Integration product multipart write smoke.
  */
 require('dotenv').config();
+process.env.INTEGRATION_IDEMPOTENCY_ENABLED = 'true';
 
 const fs = require('fs');
 const http = require('http');

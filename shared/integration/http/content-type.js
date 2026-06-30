@@ -23,8 +23,8 @@ function runMiddleware(middleware, req, res) {
 /**
  * Branch Integration write routes by Content-Type without duplicating route paths.
  *
- * JSON chain: unchanged idempotency-before-handler order.
- * Multipart chain: staging → fingerprint → idempotency → promote → handler.
+ * JSON chain: optional idempotency before handler (Platform-7.3 toggle).
+ * Multipart chain: staging → [fingerprint → idempotency] → promote → handler.
  *
  * @param {import('express').RequestHandler[]} jsonBeforeHandler
  * @param {import('express').RequestHandler[]} multipartBeforeHandler

@@ -28,8 +28,10 @@ const {
 const { attachIdempotencyResponseCapture } = require('./response-capture');
 const { integrationIdempotency } = require('./middleware');
 const { cleanupExpiredIdempotencyKeys } = require('./cleanup');
+const { isIntegrationIdempotencyEnabled } = require('./config');
 
 module.exports = {
+  isIntegrationIdempotencyEnabled,
   IDEMPOTENCY_KEY_HEADER,
   IDEMPOTENCY_KEY_MAX_LENGTH,
   IDEMPOTENCY_TTL_MS,

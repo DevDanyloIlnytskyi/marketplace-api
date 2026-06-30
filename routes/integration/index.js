@@ -9,12 +9,12 @@ const {
 } = require('../../shared/integration/http');
 const { integrationIdempotency } = require('../../shared/integration/idempotency');
 const { branchIntegrationWriteMiddleware } = require('../../shared/integration/http/content-type');
-const { promoteStagedUploads } = require('../../shared/integration/http/promote-staged-uploads');
 const {
-  integrationMultipartProductParseChain,
-  integrationMultipartMediaParseChain,
-  integrationUploadErrorHandler,
-} = require('../../shared/integration/http/integration-multipart');
+  directWriteIdempotencyMiddleware,
+  buildJsonDirectWriteChain,
+  buildMultipartDirectWriteChain,
+} = require('../../shared/integration/http/direct-write-middleware');
+const { integrationUploadErrorHandler } = require('../../shared/integration/http/integration-multipart');
 
 const metaController = require('../../integration/controllers/meta');
 const debugIdempotencyController = require('../../integration/controllers/debug-idempotency-test');
@@ -73,12 +73,8 @@ authedRouter.put(
   '/products/:idBas',
   requireScopes(INTEGRATION_SCOPES.CATALOG_WRITE),
   asyncHandler(branchIntegrationWriteMiddleware(
-    [integrationIdempotency({ required: true })],
-    [
-      ...integrationMultipartProductParseChain,
-      integrationIdempotency({ required: true }),
-      promoteStagedUploads,
-    ],
+    buildJsonDirectWriteChain(),
+    buildMultipartDirectWriteChain('product'),
     productsWriteController.upsertProductHandler,
   )),
 );
@@ -86,12 +82,8 @@ authedRouter.put(
   '/products/:productIdBas/media',
   requireScopes(INTEGRATION_SCOPES.MEDIA_WRITE),
   asyncHandler(branchIntegrationWriteMiddleware(
-    [integrationIdempotency({ required: true })],
-    [
-      ...integrationMultipartMediaParseChain,
-      integrationIdempotency({ required: true }),
-      promoteStagedUploads,
-    ],
+    buildJsonDirectWriteChain(),
+    buildMultipartDirectWriteChain('media'),
     mediaWriteController.replacePhotoSetHandler,
   )),
 );
@@ -104,7 +96,7 @@ authedRouter.get(
 authedRouter.put(
   '/prices/:productIdBas',
   requireScopes(INTEGRATION_SCOPES.PRICES_WRITE),
-  integrationIdempotency({ required: true }),
+  directWriteIdempotencyMiddleware(),
   asyncHandler(pricesWriteController.upsertPriceHandler),
 );
 
@@ -116,7 +108,7 @@ authedRouter.get(
 authedRouter.put(
   '/stock/:productIdBas',
   requireScopes(INTEGRATION_SCOPES.STOCK_WRITE),
-  integrationIdempotency({ required: true }),
+  directWriteIdempotencyMiddleware(),
   asyncHandler(stockWriteController.upsertStockHandler),
 );
 

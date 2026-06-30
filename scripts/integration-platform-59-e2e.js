@@ -7,6 +7,7 @@
  * Requires: MySQL test_bd, idempotency migration, valid .env credentials.
  */
 require('dotenv').config();
+process.env.INTEGRATION_IDEMPOTENCY_ENABLED = 'true';
 
 const http = require('http');
 const fs = require('fs');

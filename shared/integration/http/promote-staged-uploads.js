@@ -16,7 +16,8 @@ const { getStoredMediaPath } = require('../../storage/upload-path');
 
 /**
  * Promote staged uploads into final tenant product storage.
- * Only runs after idempotency proceed — replay/conflict never reach this middleware.
+ * Promote staged uploads into final tenant product storage.
+ * Runs after optional idempotency proceed — replay/conflict never reach this middleware when idempotency is enabled.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
